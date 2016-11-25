@@ -1,7 +1,7 @@
--- | The 'Reverso' module is the namespace for the server application. This
+-- | The 'WebRepl' module is the namespace for the server application. This
 -- application serves up a simple websockets API that just reverses the string
 -- it is provided.
-module Reverso where
+module WebRepl where
 
 import           Protolude
 
@@ -10,8 +10,8 @@ import qualified Network.Wai.Handler.WebSockets       as WS
 import qualified Network.Wai.Middleware.RequestLogger as Logger
 import qualified Network.WebSockets                   as WS
 
-import qualified Reverso.App                          as App
-import qualified Reverso.Static                       as Static
+import qualified WebRepl.App                          as App
+import qualified WebRepl.Static                       as Static
 
 -- | Start and run the application. The Wai WebSockets library provides
 -- a function 'websocketsOr' which takes three parameters:
