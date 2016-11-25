@@ -17,6 +17,7 @@ import Unsafe.Coerce
 import Signal.Channel
 import DOM (DOM)
 import WebSocket
+import Data.Argonaut.Generic.Aeson as JSON
 
 import App.Counter as Counter
 import App.NotFound as NotFound
@@ -64,7 +65,7 @@ update (ServerRecv str) state =
 update ServerSend state =
     { state: state { currentMessage = "" }
     , effects: [ do
-        liftEff (state.sendSocket state.currentMessage)
+        liftEff (state.sendSocket $ JSON.encodeJSON (CompileExpr state.currentMessage))
         pure Noop
         ]
     }
