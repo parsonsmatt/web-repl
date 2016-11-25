@@ -11,5 +11,6 @@ exes
 *.hp
 *.prof
 *.ps
+ui/node_modules/
 ui/bower_components/
 ui/output/
