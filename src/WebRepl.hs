@@ -11,6 +11,7 @@ import qualified Network.Wai.Middleware.RequestLogger as Logger
 import qualified Network.WebSockets                   as WS
 
 import qualified WebRepl.App                          as App
+import qualified WebRepl.Export                       as Export
 import qualified WebRepl.Static                       as Static
 
 -- | Start and run the application. The Wai WebSockets library provides
@@ -22,7 +23,8 @@ import qualified WebRepl.Static                       as Static
 -- The 'App' module contains the code that defines the websockets stuff, while
 -- 'Static' contains the server for the front-end.
 application :: IO ()
-application =
+application = do
+    Export.writeFile
     Warp.run 8080
         . Logger.logStdoutDev
         . WS.websocketsOr WS.defaultConnectionOptions App.app
