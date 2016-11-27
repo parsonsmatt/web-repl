@@ -9,6 +9,7 @@ import           Data.Aeson
 import           Data.String.Conversions (cs)
 import qualified Data.Text               as Text
 import qualified Network.WebSockets      as WS
+import Elm
 
 -- | So, the 'ServerApp' is a type alias for @'PendingConnection' -> 'IO' ()@.
 -- We use 'acceptRequest', which sits around waiting for someone to connect to
@@ -45,14 +46,14 @@ sendJSON conn =
 data ServerCommand
     = CompileExpr Text
     | ClearState
-    deriving (Eq, Show, Generic, FromJSON)
+    deriving (Eq, Show, Generic, FromJSON, ElmType)
 
 data ServerReply
     = PrintStatement Text
     | ReportError ServiceError
-    deriving (Eq, Show, Generic, ToJSON)
+    deriving (Eq, Show, Generic, ToJSON, ElmType)
 
 data ServiceError
     = ParseError
     | BadRequest Text
-    deriving (Eq, Show, Generic, ToJSON)
+    deriving (Eq, Show, Generic, ToJSON, ElmType)

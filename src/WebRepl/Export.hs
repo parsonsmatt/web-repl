@@ -1,16 +1,9 @@
--- | This modules contains the top level definitions for exporting PureScript
--- types for the Haskell data types.
-module WebRepl.Export where
+module WebRepl.Export
+    ( module WebRepl.Export
+    , module X
+    ) where
 
-import           Protolude
+import Protolude
 
-import           Language.PureScript.Bridge
-
-import           WebRepl.App
-
-writeFile :: MonadIO m => m ()
-writeFile = liftIO $ writePSTypes "ui/src" (buildBridge defaultBridge)
-    [ mkSumType (Proxy :: Proxy ServerCommand)
-    , mkSumType (Proxy :: Proxy ServerReply)
-    , mkSumType (Proxy :: Proxy ServiceError)
-    ]
+import WebRepl.Export.PureScript as X
+import WebRepl.Export.Elm as X

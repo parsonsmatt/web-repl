@@ -24,7 +24,8 @@ import qualified WebRepl.Static                       as Static
 -- 'Static' contains the server for the front-end.
 application :: IO ()
 application = do
-    Export.writeFile
+    Export.writePureScript
+    Export.writeElmFiles
     Warp.run 8080
         . Logger.logStdoutDev
         . WS.websocketsOr WS.defaultConnectionOptions App.app

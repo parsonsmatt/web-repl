@@ -22,6 +22,11 @@ default-extensions:
 dependencies:
   - base >= 4.7 && < 5
   - protolude
+
+  - aeson
+  - elm-export
+  - purescript-bridge
+  - string-conversions
   - text
   - wai
   - wai-app-static
@@ -29,9 +34,6 @@ dependencies:
   - wai-websockets
   - warp
   - websockets
-  - aeson
-  - string-conversions
-  - purescript-bridge
 
 library:
   source-dirs: src
