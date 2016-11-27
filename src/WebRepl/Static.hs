@@ -9,4 +9,4 @@ import qualified Network.Wai.Application.Static as Static
 -- to the @ui/static@ directory, which will contain the built artifacts from the
 -- frontend application.
 serve :: Application
-serve = Static.staticApp (Static.defaultFileServerSettings "ui/static")
+serve = Static.staticApp (Static.defaultFileServerSettings "purs-ui/static")
