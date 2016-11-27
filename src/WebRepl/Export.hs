@@ -1,9 +1,14 @@
-module WebRepl.Export
-    ( module WebRepl.Export
-    , module X
-    ) where
+module WebRepl.Export where
 
-import Protolude
+import           Protolude
 
-import WebRepl.Export.PureScript as X
-import WebRepl.Export.Elm as X
+import           Language.PureScript.Bridge
+
+import           WebRepl.App
+
+writePureScript :: MonadIO m => m ()
+writePureScript = liftIO $ writePSTypes "ui/src" (buildBridge defaultBridge)
+    [ mkSumType (Proxy :: Proxy ServerCommand)
+    , mkSumType (Proxy :: Proxy ServerReply)
+    , mkSumType (Proxy :: Proxy ServiceError)
+    ]

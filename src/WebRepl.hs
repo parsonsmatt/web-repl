@@ -25,7 +25,6 @@ import qualified WebRepl.Static                       as Static
 application :: IO ()
 application = do
     Export.writePureScript
-    Export.writeElmFiles
     Warp.run 8080
         . Logger.logStdoutDev
         . WS.websocketsOr WS.defaultConnectionOptions App.app
