@@ -14,7 +14,8 @@
     "purescript-signal": "^8.0.0",
     "purescript-debug": "^2.0.0",
     "purescript-generics": "^3.1.0",
-    "purescript-argonaut": "^2.0.0"
+    "purescript-argonaut": "^2.0.0",
+    "purescript-argonaut-generic-codecs": "parsonsmatt/purescript-argonaut-generic-codecs#7200d5450f840d71cc66463c64cd051962e91c44"
   },
   "resolutions": {
     "purescript-dom": "^3.1.0"

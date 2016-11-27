@@ -2,6 +2,8 @@ module App.Layout where
 
 import Prelude
 
+import Data.Either
+import Data.Maybe
 import Data.Array as Array
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
@@ -18,11 +20,14 @@ import Signal.Channel
 import DOM (DOM)
 import WebSocket
 import Data.Argonaut.Generic.Aeson as JSON
+import Data.Argonaut.Parser as JSON
+import Data.Generic
 
 import App.Counter as Counter
 import App.NotFound as NotFound
 import App.Routes (Route(Home, NotFound))
 import App.Effects (AppEffects, AllEffects)
+import WebRepl.App
 
 data Action
     = Child Counter.Action
@@ -59,13 +64,18 @@ update (PageView route) state =
 update (Child action) state =
     noEffects $ state { count = Counter.update action state.count }
 update (ServerRecv str) state =
-    noEffects case str of
-         "" -> state
-         _ -> state { messages = Array.cons str state.messages }
+    noEffects case JSON.decodeJson =<< (JSON.jsonParser str) of
+         Left _ -> state
+         Right a -> state { messages = Array.cons (gShow (a :: ServerReply)) state.messages }
 update ServerSend state =
     { state: state { currentMessage = "" }
     , effects: [ do
-        liftEff (state.sendSocket $ JSON.encodeJSON (CompileExpr state.currentMessage))
+        liftEff
+            $ state.currentMessage
+            # CompileExpr
+            # JSON.encodeJson
+            # show
+            # state.sendSocket
         pure Noop
         ]
     }

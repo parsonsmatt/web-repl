@@ -8,7 +8,7 @@ import Data.Generic (class Generic)
 
 data ServerCommand =
     CompileExpr String
-  | ClearState
+  | ClearState 
 
 derive instance genericServerCommand :: Generic ServerCommand
 
@@ -19,7 +19,7 @@ data ServerReply =
 derive instance genericServerReply :: Generic ServerReply
 
 data ServiceError =
-    ParseError
+    ParseError 
   | BadRequest String
 
 derive instance genericServiceError :: Generic ServiceError

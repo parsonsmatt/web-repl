@@ -9,7 +9,7 @@ import           Language.PureScript.Bridge
 import           WebRepl.App
 
 writeFile :: MonadIO m => m ()
-writeFile = liftIO $ writePSTypes "ui/" (buildBridge defaultBridge)
+writeFile = liftIO $ writePSTypes "ui/src" (buildBridge defaultBridge)
     [ mkSumType (Proxy :: Proxy ServerCommand)
     , mkSumType (Proxy :: Proxy ServerReply)
     , mkSumType (Proxy :: Proxy ServiceError)
