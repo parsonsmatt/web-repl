@@ -5,6 +5,7 @@ module WebRepl.App where
 
 import           Protolude
 
+import Control.Monad.Catch
 import           Data.Aeson
 import           Data.IORef
 import qualified Data.Map                as Map
@@ -16,6 +17,7 @@ import qualified Text.Megaparsec.Lexer   as P
 import           Text.Megaparsec.Text    as P
 
 import           WebRepl.Expr
+import           WebRepl.Exn
 import           WebRepl.Expr.Parser
 
 -- | So, the 'ServerApp' is a type alias for @'PendingConnection' -> 'IO' ()@.
@@ -26,9 +28,8 @@ app :: WS.ServerApp
 app pending = do
     conn <- WS.acceptRequest pending
     WS.forkPingThread conn 30
-    varRef <- newIORef mempty
-    forever $ do
-        msg <- WS.receiveData conn
+    void . forever . flip runStateT mempty $ do
+        msg <- liftIO $ WS.receiveData conn
         case decode msg of
             Nothing ->
                 sendJSON conn
@@ -37,53 +38,52 @@ app pending = do
                     . cs
                     $ msg
             Just cmd -> do
-                reply <- handleCommand cmd varRef
-                sendJSON conn reply
+                ereply <- runExceptT $ handleCommand cmd
+                case ereply of
+                    Left err -> pure ()
+                    Right reply -> sendJSON conn (PrintStatement reply)
 
 type ServerState = Map Text Integer
 
-handleCommand :: ServerCommand -> IORef ServerState -> IO ServerReply
-handleCommand ClearState ref = do
-    writeIORef ref mempty
-    pure (PrintStatement "Refs Cleared")
-handleCommand (CompileExpr input) ref = do
-    case P.parse programOrExpr "web" input of
-        Left err -> pure . ReportError . ParseError . show $ err
-        Right app -> do
-            vars <- readIORef ref
-            case app of
-                Left prog -> do
-                    let Just (result, vars') = interpret vars prog
-                    writeIORef ref vars'
-                    pure
-                        . PrintStatement
-                        . show
-                        $ result
-                Right expr -> do
-                    case evalExpr expr vars of
-                        Nothing -> pure
-                            . ReportError
-                            . BadRequest
-                            $ "Evaluation failed"
-                        Just answer -> pure
-                            . PrintStatement
-                            . show
-                            $ answer
+handleCommand
+    :: (MonadState ServerState m, MonadError ServiceError m)
+    => ServerCommand
+    -> m Text
+handleCommand = \case
+    ClearState -> do
+        put mempty
+        pure "Refs Cleared"
+    CompileExpr input -> do
+        case P.parse programOrExpr "web" input of
+            Left err -> throwError . ParseError . show $ err
+            Right app -> do
+                case app of
+                    Left prog ->
+                        Text.unlines <$> interpret prog
+                    Right expr ->
+                        show <$> evalExpr expr
+interpret
+    :: (MonadError ServiceError m, MonadState EvalState m)
+    => Program
+    -> m [Text]
+interpret [] =
+    pure []
+interpret (Assign x expr : xs) = do
+    evaled <- evalExpr expr
+    modify (Map.insert x evaled)
+    interpret xs
+interpret (Print x : xs) = do
+    evaled <- evalExpr x
+    rest <- interpret xs
+    pure (show evaled : rest)
 
-interpret :: ServerState -> Program -> Maybe ([Text], ServerState)
-interpret vars [] =
-    pure ([], vars)
-interpret vars (Assign x expr : xs) = do
-    evaled <- evalExpr expr vars
-    interpret (Map.insert x evaled vars) xs
-interpret vars (Print x : xs) = do
-    evaled <- evalExpr x vars
-    (rest, vars') <- interpret vars xs
-    pure (show evaled : rest, vars')
+convertError :: MonadError e' m => (e -> e') -> m (Either e a) -> m a
+convertError f a = either (throwError . f) pure =<< a
 
-sendJSON :: ToJSON a => WS.Connection -> a -> IO ()
+sendJSON :: (ToJSON a, MonadIO m) => WS.Connection -> a -> m ()
 sendJSON conn =
-    WS.sendTextData conn
+    liftIO
+        . WS.sendTextData conn
         . encode
         . toJSON
 
@@ -95,9 +95,4 @@ data ServerCommand
 data ServerReply
     = PrintStatement Text
     | ReportError ServiceError
-    deriving (Eq, Show, Generic, ToJSON)
-
-data ServiceError
-    = ParseError Text
-    | BadRequest Text
     deriving (Eq, Show, Generic, ToJSON)

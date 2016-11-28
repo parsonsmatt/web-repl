@@ -27,6 +27,7 @@ import App.NotFound as NotFound
 import App.Routes (Route(Home, NotFound))
 import App.Effects (AppEffects, AllEffects)
 import WebRepl.App
+import WebRepl.Exn
 import App.Action
 import App.State
 import App.Messages as Messages
@@ -75,6 +76,7 @@ renderReply (PrintStatement str) = str
 renderReply (ReportError svc) = "Error: " <> case svc of
                                                   ParseError err -> err
                                                   BadRequest err -> err
+                                                  EvalError err -> gShow err
 
 
 

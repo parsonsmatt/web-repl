@@ -23,9 +23,11 @@ dependencies:
   - base >= 4.7 && < 5
   - protolude
 
+  - exceptions
+  - mtl
+  - transformers
   - aeson
   - containers
-  - elm-export
   - megaparsec
   - purescript-bridge
   - string-conversions

@@ -2,6 +2,7 @@
 module WebRepl.App where
 
 import Prim (String)
+import WebRepl.Exn (ServiceError)
 
 import Data.Generic (class Generic)
 
@@ -17,10 +18,4 @@ data ServerReply =
   | ReportError ServiceError
 
 derive instance genericServerReply :: Generic ServerReply
-
-data ServiceError =
-    ParseError String
-  | BadRequest String
-
-derive instance genericServiceError :: Generic ServiceError
 

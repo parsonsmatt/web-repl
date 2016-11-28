@@ -1,8 +1,19 @@
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE TypeFamilies           #-}
+
 module WebRepl.Expr where
 
 import           Protolude
 
-import qualified Data.Map  as Map
+import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
+import qualified Data.Map                  as Map
+
+import           WebRepl.Exn
 
 type Program = [Stmt]
 
@@ -15,7 +26,19 @@ data Expr
     | Add Expr Expr
     | Var Text
 
-evalExpr :: Expr -> Map Text Integer -> Maybe Integer
-evalExpr (LInt a)  _    = pure a
-evalExpr (Add a b) m    = liftA2 (+) (evalExpr a m) (evalExpr b m)
-evalExpr (Var txt) vars = Map.lookup txt vars
+type EvalState = Map Text Integer
+
+evalExpr
+    :: (MonadError ServiceError m, MonadState EvalState m)
+    => Expr
+    -> m Integer
+evalExpr (LInt a) =
+    pure a
+evalExpr (Add a b) =
+    liftA2 (+) (evalExpr a) (evalExpr b)
+evalExpr (Var txt) =
+    (`orThrow` EvalError (VarNotFound txt)) =<< gets (Map.lookup txt)
+
+orThrow :: MonadError e m => Maybe a -> e -> m a
+orThrow (Just a) _ = pure a
+orThrow Nothing  e = throwError e

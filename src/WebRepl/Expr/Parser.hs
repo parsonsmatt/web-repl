@@ -75,7 +75,7 @@ print' = do
     pure (Print val)
 
 program :: Parser Program
-program = stmt `sepBy1` lchar ';'
+program = stmt `sepEndBy1` lchar ';'
 
 programOrExpr :: Parser (Either Program Expr)
 programOrExpr = Left <$> try program <|> Right <$> try expr
