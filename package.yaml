@@ -24,7 +24,9 @@ dependencies:
   - protolude
 
   - aeson
+  - containers
   - elm-export
+  - megaparsec
   - purescript-bridge
   - string-conversions
   - text

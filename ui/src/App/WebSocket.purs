@@ -6,22 +6,16 @@ import Prelude
 import Data.Tuple (Tuple(..))
 import WebSocket as WS
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Exception
+import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Var (($=))
-import WebSocket
+import WebSocket (WEBSOCKET)
 import Signal.Channel as Chan
-import Signal.Channel
+import Signal.Channel (CHANNEL)
 import Signal (Signal)
-import DOM (DOM)
 
 -- | This function creates two things -- a Signal of strings that the websocket
 -- sends, and a function which sends a string to the websocket.
-createSocketSignal
-    :: forall eff foo
-     . Eff _ (Tuple
-            (Signal String)
-            (String -> Eff _ Unit)
-            )
+createSocketSignal :: Eff _ (Tuple (Signal String) (String -> Eff _ Unit))
 createSocketSignal = do
     -- A Channel is an easy way to shovel a bunch of things into a signal.
     chan <- Chan.channel ""

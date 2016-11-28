@@ -19,7 +19,7 @@ data ServerReply =
 derive instance genericServerReply :: Generic ServerReply
 
 data ServiceError =
-    ParseError 
+    ParseError String
   | BadRequest String
 
 derive instance genericServiceError :: Generic ServiceError

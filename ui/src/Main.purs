@@ -9,7 +9,9 @@ import Pux.Devtool (Action, start) as Pux.Devtool
 import Pux.Router (sampleUrl)
 import Signal ((~>))
 
-import App.Layout (Action(..), State, view, update)
+import App.Action (Action(..))
+import App.State
+import App.Layout (view, update)
 import App.Routes (match)
 import App.WebSocket as WS
 import App.Effects (AppEffects, AllEffects)

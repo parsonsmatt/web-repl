@@ -23,32 +23,17 @@ import Data.Argonaut.Generic.Aeson as JSON
 import Data.Argonaut.Parser as JSON
 import Data.Generic
 
-import App.Counter as Counter
 import App.NotFound as NotFound
 import App.Routes (Route(Home, NotFound))
 import App.Effects (AppEffects, AllEffects)
 import WebRepl.App
-
-data Action
-    = Child Counter.Action
-    | PageView Route
-    | ServerSend
-    | ServerRecv String
-    | ChangeMessage String
-    | Noop
-
-type State =
-    { route :: Route
-    , count :: Counter.State
-    , currentMessage :: String
-    , messages :: Array String
-    , sendSocket :: String -> Eff AllEffects Unit
-    }
+import App.Action
+import App.State
+import App.Messages as Messages
 
 init :: State
 init =
     { route: Home
-    , count: Counter.init
     , currentMessage: ""
     , messages: []
     , sendSocket: \_ -> pure unit
@@ -61,12 +46,15 @@ update
 update Noop state = noEffects state
 update (PageView route) state =
     noEffects $ state { route = route }
-update (Child action) state =
-    noEffects $ state { count = Counter.update action state.count }
 update (ServerRecv str) state =
-    noEffects case JSON.decodeJson =<< (JSON.jsonParser str) of
-         Left _ -> state
-         Right a -> state { messages = Array.cons (gShow (a :: ServerReply)) state.messages }
+    noEffects case JSON.decodeJson =<< JSON.jsonParser str of
+         Left _ ->
+            state
+         Right a ->
+            state
+                { messages =
+                    Array.cons (renderReply a) state.messages
+                }
 update ServerSend state =
     { state: state { currentMessage = "" }
     , effects: [ do
@@ -82,6 +70,14 @@ update ServerSend state =
 update (ChangeMessage msg) state =
     noEffects state { currentMessage = msg }
 
+renderReply :: ServerReply -> String
+renderReply (PrintStatement str) = str
+renderReply (ReportError svc) = "Error: " <> case svc of
+                                                  ParseError err -> err
+                                                  BadRequest err -> err
+
+
+
 view :: State -> Html Action
 view state =
     div
@@ -89,11 +85,6 @@ view state =
         [ h1 [] [ text "My Starter App" ]
         , p [] [ text "Change src/App/Layout.purs and watch me hot-reload." ]
         , case state.route of
-               Home -> map Child $ Counter.view state.count
+               Home -> Messages.view state
                NotFound -> NotFound.view state
-        , H.form [E.onSubmit (const ServerSend)]
-            [ H.input [E.onChange (ChangeMessage <<< _.target.value), A.value state.currentMessage ] []
-            , H.button [] [text "Send"]
-            ]
-        , H.ul [] (map (\i -> H.li [] [text i]) state.messages)
         ]
